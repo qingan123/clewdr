@@ -1,26 +1,63 @@
-# ClewdR 交互式 Docker 脚本
+# ClewdR SSH 部署脚本说明
 
-脚本适合 SSH 服务器使用，默认使用官方 `ghcr.io/xerxes-2/clewdr:latest` 镜像，并把 `/etc/clewdr` 持久化到宿主机。
+这个 Fork 提供 **3 个独立脚本**，分别负责部署、更新和卸载。脚本文件已经放在你的 GitHub 仓库中，部署服务器时需要先从你的仓库下载项目，再执行脚本。
 
-## 使用
-
-```bash
-chmod +x scripts/clewdr-*.sh
-./scripts/clewdr-menu.sh
-```
-
-也可以直接执行：
+## 第一步：从你的 GitHub 仓库下载
 
 ```bash
-./scripts/clewdr-install.sh   # 交互选择容器名、端口、数据目录、管理员密码、API 密钥
-./scripts/clewdr-update.sh    # 拉取最新版并重建，保留数据和原端口/密码
-./scripts/clewdr-delete.sh    # 交互删除容器，可选择是否删除数据
+git clone https://github.com/qingan123/clewdr.git
+cd clewdr
 ```
 
-## 安全说明
+如果服务器没有安装 Git，可以使用下面的方式下载压缩包：
 
-- 密码使用隐藏输入；留空时由 ClewdR 自动生成。
-- 更新脚本会从现有容器读取端口、挂载目录和 `CLEWDR_*` 配置，避免更新后丢 Cookie 或改密码。
-- 删除默认只删除容器，不删除数据；删除数据必须输入 `DELETE DATA`。
-- 脚本不会自动修改 UFW。若要公网访问，请由管理员明确放行所选端口，例如 `sudo ufw allow 8484/tcp`。
-- 不建议把管理后台直接暴露到公网；最好使用防火墙限制来源或已有 HTTPS 入口。
+```bash
+curl -L https://github.com/qingan123/clewdr/archive/refs/heads/master.tar.gz -o clewdr.tar.gz
+tar -xzf clewdr.tar.gz
+cd clewdr-master
+```
+
+## 第二步：执行脚本
+
+不需要先执行 `chmod`，直接使用 `bash` 执行即可：
+
+```bash
+bash scripts/clewdr-install.sh
+```
+
+如果希望使用 `./` 方式执行，才需要先授权：
+
+```bash
+chmod +x scripts/clewdr-install.sh scripts/clewdr-update.sh scripts/clewdr-delete.sh
+./scripts/clewdr-install.sh
+```
+
+## 三个脚本
+
+### 部署
+
+```bash
+bash scripts/clewdr-install.sh
+```
+
+第一次部署使用。脚本会检查 Docker；如果服务器没有 Docker，会先询问是否执行 Docker 官方安装脚本。然后交互设置容器名称、宿主机端口、数据目录、管理员密码和 API 密钥。
+
+### 更新
+
+```bash
+bash scripts/clewdr-update.sh
+```
+
+更新官方 ClewdR 镜像，保留端口、数据目录、Cookie、管理员密码和 API 密钥。
+
+### 卸载
+
+```bash
+bash scripts/clewdr-delete.sh
+```
+
+交互选择只删除容器，或者同时删除数据目录。彻底删除数据需要二次确认。
+
+## 前提条件
+
+服务器需要能联网，并且当前 SSH 用户是 root 或拥有 sudo 权限。部署脚本只在你确认后才会安装 Docker。
