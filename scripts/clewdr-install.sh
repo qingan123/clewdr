@@ -10,8 +10,23 @@ DATA_DIR="${CLEWDR_DATA_DIR:-$HOME/.clewdr/data}"
 DEFAULT_PORT="${CLEWDR_PORT:-8484}"
 
 fail() { printf '错误：%s\n' "$*" >&2; exit 1; }
-command -v docker >/dev/null 2>&1 || fail '未找到 Docker，请先安装 Docker。'
-docker info >/dev/null 2>&1 || fail 'Docker 不可用，请确认当前 SSH 用户有权限。'
+
+install_docker_if_needed() {
+  if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then return; fi
+  command -v curl >/dev/null 2>&1 || fail '服务器没有 curl，无法安装 Docker。请先安装 curl。'
+  if [[ "$(id -u)" -eq 0 ]]; then SUDO=''; else command -v sudo >/dev/null 2>&1 || fail '当前用户不是 root，且没有 sudo。'; SUDO='sudo'; fi
+  if command -v docker >/dev/null 2>&1; then
+    $SUDO systemctl enable --now docker 2>/dev/null || true
+  else
+    printf '\n检测到服务器没有 Docker。将执行 Docker 官方安装脚本：https://get.docker.com/\n'
+    read -r -p '确认安装 Docker？输入 yes 继续：' answer
+    [[ "$answer" == yes ]] || fail '未安装 Docker，部署已取消。'
+    curl -fsSL https://get.docker.com | $SUDO sh
+    $SUDO systemctl enable --now docker 2>/dev/null || true
+  fi
+  docker info >/dev/null 2>&1 || fail 'Docker 安装后仍不可用，请检查 Docker 服务状态。'
+}
+install_docker_if_needed
 
 printf 'ClewdR 一键部署\n================\n'
 read -r -p "容器名称 [${APP_NAME}]: " input; APP_NAME="${input:-$APP_NAME}"

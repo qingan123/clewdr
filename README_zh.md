@@ -1,4 +1,74 @@
-# ClewdR
+## SSH 一键部署使用方法
+
+本项目提供 3 个独立脚本，分别负责部署、更新和卸载，适合在 Linux 服务器 SSH 中执行。
+
+### 第一步：准备服务器
+
+支持常见的 Debian、Ubuntu、CentOS、Rocky Linux 等 Linux 服务器。
+
+服务器只需要能联网，并且当前用户满足以下任一条件：
+
+- 使用 root 登录；或
+- 当前用户拥有 sudo 权限。
+
+如果服务器已经安装并运行 Docker，脚本直接使用现有 Docker。
+如果没有 Docker，部署脚本会先提示，并在你输入 `yes` 确认后执行 Docker 官方安装脚本。输入其他内容则取消，不会修改服务器。
+
+### 第二步：下载项目
+
+```bash
+git clone https://github.com/qingan123/clewdr.git
+cd clewdr
+chmod +x scripts/clewdr-install.sh scripts/clewdr-update.sh scripts/clewdr-delete.sh
+```
+
+### 第三步：部署
+
+```bash
+bash scripts/clewdr-install.sh
+```
+
+脚本会交互询问：
+
+- 容器名称
+- 宿主机端口
+- 数据目录
+- 管理员密码
+- API 密钥
+
+密码输入时不会回显。留空时由 ClewdR 自动生成。
+
+部署完成后访问：
+
+```text
+http://服务器IP:你设置的端口/
+```
+
+### 更新
+
+```bash
+bash scripts/clewdr-update.sh
+```
+
+更新会保留原端口、数据目录、Cookie、管理员密码和 API 密钥。
+
+### 卸载
+
+```bash
+bash scripts/clewdr-delete.sh
+```
+
+默认只删除容器并保留数据。只有明确选择删除数据并输入确认文字后，才会删除 Cookie、密码和配置。
+
+### 三个脚本
+
+```text
+scripts/clewdr-install.sh  第一次部署；必要时提示安装 Docker
+scripts/clewdr-update.sh   拉取官方最新版并更新容器
+scripts/clewdr-delete.sh   交互式删除容器，可选择是否删除数据
+```
+
+---
 
 <p align="center">
   <img src="./assets/clewdr-logo.svg" alt="ClewdR" height="60">
